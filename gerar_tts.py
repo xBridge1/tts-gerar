@@ -89,6 +89,9 @@ async def gerar_audio(texto: str, args: argparse.Namespace) -> None:
             [
                 ffmpeg,
                 "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
                 "-i",
                 str(mp3),
                 "-ac",
