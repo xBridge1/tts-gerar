@@ -1,0 +1,11 @@
+.venv/
+.tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Arquivos gerados
+audio.wav
+audios/
+*.mp3
+*.wav
