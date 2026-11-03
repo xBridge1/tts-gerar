@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -62,19 +63,41 @@ def obter_texto(args: argparse.Namespace) -> str:
 
 
 async def gerar_audio(texto: str, args: argparse.Namespace) -> None:
-    ffmpeg = shutil.which("ffmpeg")
+    await gerar_audio_wav(texto, args.saida, args.voz, args.velocidade)
+
+
+def localizar_ffmpeg() -> str | None:
+    """Encontra o FFmpeg no Windows ou dentro do executável empacotado."""
+    if getattr(sys, "frozen", False):
+        ffmpeg_embutido = Path(sys._MEIPASS) / "ffmpeg.exe"
+        if ffmpeg_embutido.is_file():
+            return str(ffmpeg_embutido)
+    return shutil.which("ffmpeg")
+
+
+async def gerar_audio_wav(
+    texto: str,
+    saida: Path,
+    voz: str = "pt-BR-FranciscaNeural",
+    velocidade: str = "-5%",
+) -> Path:
+    """Gera um WAV mono, 8 kHz e 16-bit e devolve o caminho criado."""
+    ffmpeg = localizar_ffmpeg()
     if ffmpeg is None:
         raise RuntimeError(
-            "FFmpeg não foi encontrado no PATH. Execute setup.ps1 para instalar as dependências."
+            "FFmpeg não foi encontrado. Execute setup.ps1 ou gere o executável com build.ps1."
         )
 
-    saida = args.saida.with_suffix(".wav")
+    if not texto.strip():
+        raise ValueError("O texto informado está vazio.")
+
+    saida = Path(saida).with_suffix(".wav")
     saida.parent.mkdir(parents=True, exist_ok=True)
 
     comunicacao = edge_tts.Communicate(
         text=texto,
-        voice=args.voz,
-        rate=args.velocidade,
+        voice=voz,
+        rate=velocidade,
     )
 
     arquivo_temporario = tempfile.NamedTemporaryFile(
@@ -107,7 +130,7 @@ async def gerar_audio(texto: str, args: argparse.Namespace) -> None:
     finally:
         mp3.unlink(missing_ok=True)
 
-    print(f"Áudio gerado: {saida.resolve()}")
+    return saida.resolve()
 
 
 async def main() -> None:
@@ -120,9 +143,8 @@ async def main() -> None:
 
     try:
         texto = obter_texto(args)
-        if not texto.strip():
-            raise ValueError("O texto informado está vazio.")
         await gerar_audio(texto, args)
+        print(f"Áudio gerado: {args.saida.with_suffix('.wav').resolve()}")
     except (FileNotFoundError, RuntimeError, ValueError) as erro:
         parser.error(str(erro))
 
