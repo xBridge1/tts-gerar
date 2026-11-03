@@ -32,6 +32,26 @@ Também é possível ler o texto de um arquivo UTF-8:
 
 O áudio é salvo em WAV mono, 8 kHz, 16-bit, adequado para fluxos de voz que exigem esse formato.
 
+## Interface gráfica
+
+Depois da instalação, abra a interface com:
+
+```powershell
+.\.venv\Scripts\python.exe .\app.py
+```
+
+Ela permite escrever o texto, escolher uma voz, ajustar a velocidade e definir o arquivo WAV de destino.
+
+## Executável do Windows
+
+Com o FFmpeg instalado e disponível no PATH, execute:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+O arquivo `dist\GeradorTTS.exe` será criado com o FFmpeg incluído, portanto não exige uma instalação separada do FFmpeg no computador de destino. O aplicativo ainda precisa de conexão com a internet para usar as vozes neurais do Edge.
+
 ## Escolher uma voz
 
 Para consultar as vozes disponíveis:

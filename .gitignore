@@ -9,3 +9,6 @@ audio.wav
 audios/
 *.mp3
 *.wav
+build/
+dist/
+*.spec
