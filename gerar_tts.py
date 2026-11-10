@@ -126,6 +126,8 @@ async def gerar_audio_wav(
                 str(saida),
             ],
             check=True,
+            # Evita abrir uma janela de console no executável sem terminal.
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     finally:
         mp3.unlink(missing_ok=True)

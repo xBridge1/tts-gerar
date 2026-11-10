@@ -42,15 +42,22 @@ Depois da instalação, abra a interface com:
 
 Ela permite escrever o texto, escolher uma voz, ajustar a velocidade e definir o arquivo WAV de destino.
 
-## Executável do Windows
+## Instalador do Windows
 
-Com o FFmpeg instalado e disponível no PATH, execute:
+A forma mais simples de usar é baixar o `GeradorTTS-Setup-x.y.z.exe` na página de [Releases](https://github.com/xBridge1/tts-gerar/releases) e executá-lo. O instalador não exige administrador, cria atalho no Menu Iniciar (e, opcionalmente, na Área de Trabalho) e já inclui o FFmpeg. Os áudios são salvos por padrão em `Documentos\Gerador TTS`. O aplicativo precisa de conexão com a internet para usar as vozes neurais do Edge.
+
+### Gerar o instalador
+
+Requer o FFmpeg no PATH (instalado pelo `setup.ps1`) e o [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\build.ps1
+winget install --id JRSoftware.InnoSetup --exact
+powershell -ExecutionPolicy Bypass -File .\build.ps1 -Versao 1.0.0
 ```
 
-O arquivo `dist\GeradorTTS.exe` será criado com o FFmpeg incluído, portanto não exige uma instalação separada do FFmpeg no computador de destino. O aplicativo ainda precisa de conexão com a internet para usar as vozes neurais do Edge.
+O instalador será criado em `dist\GeradorTTS-Setup-1.0.0.exe`. Para gerar apenas um `.exe` portátil, sem instalador, use `.\build.ps1 -Portatil` (resultado em `dist\GeradorTTS.exe`).
+
+O ícone do aplicativo fica em `iconpp.ico`.
 
 ## Escolher uma voz
 

@@ -2,6 +2,7 @@
 
 import asyncio
 import ctypes
+import sys
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -25,11 +26,16 @@ DESTAQUE = "#CDFF00"
 DESTAQUE_HOVER = "#D6FF33"
 TEXTO = "#FFFFFF"
 
+PASTA_RECURSOS = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
+ICONE = PASTA_RECURSOS / "icon" / "app.ico"
+
 
 class GeradorTTSApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Gerador de TTS")
+        if ICONE.is_file():
+            self.iconbitmap(default=str(ICONE))
         self.geometry("760x440")
         self.configure(background=FUNDO)
         self.resizable(False, False)
@@ -56,7 +62,9 @@ class GeradorTTSApp(tk.Tk):
     @staticmethod
     def _saida_padrao() -> str:
         nome = f"audio_{datetime.now():%Y%m%d_%H%M%S}.wav"
-        return str(Path.cwd() / "audios" / nome)
+        # Instalado em Arquivos de Programas, a pasta atual não é gravável.
+        base = Path.home() / "Documents" / "Gerador TTS" if getattr(sys, "frozen", False) else Path.cwd() / "audios"
+        return str(base / nome)
 
     def _montar_tela(self) -> None:
         estilo = ttk.Style(self)
