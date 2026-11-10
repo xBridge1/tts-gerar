@@ -58,6 +58,29 @@ class GeradorTTSApp(tk.Tk):
         if self.tk.call("tk", "windowingsystem") == "win32":
             regiao = ctypes.windll.gdi32.CreateRoundRectRgn(0, 0, largura + 1, altura + 1, 16, 16)
             ctypes.windll.user32.SetWindowRgn(self.winfo_id(), regiao, True)
+            self._mostrar_na_barra_de_tarefas()
+
+    def _janela_windows(self) -> int:
+        """Devolve o handle da janela de nível superior criada pelo Tk."""
+        return ctypes.windll.user32.GetParent(self.winfo_id())
+
+    def _mostrar_na_barra_de_tarefas(self) -> None:
+        """Janelas sem borda (overrideredirect) somem da barra; isto as traz de volta."""
+        gwl_exstyle, ws_ex_appwindow, ws_ex_toolwindow = -20, 0x00040000, 0x00000080
+        user32 = ctypes.windll.user32
+        hwnd = self._janela_windows()
+        estilo = user32.GetWindowLongW(hwnd, gwl_exstyle)
+        user32.SetWindowLongW(hwnd, gwl_exstyle, (estilo & ~ws_ex_toolwindow) | ws_ex_appwindow)
+        # O Windows só aplica a mudança quando a janela é exibida novamente.
+        self.withdraw()
+        self.after(10, self.deiconify)
+
+    def _minimizar(self) -> None:
+        if self.tk.call("tk", "windowingsystem") == "win32":
+            sw_minimize = 6
+            ctypes.windll.user32.ShowWindow(self._janela_windows(), sw_minimize)
+        else:
+            self.iconify()
 
     @staticmethod
     def _saida_padrao() -> str:
@@ -109,7 +132,7 @@ class GeradorTTSApp(tk.Tk):
             "pady": 0,
             "takefocus": 0,
         }
-        minimizar = tk.Button(barra, text="—", command=self.iconify, cursor="hand2", **botao_base)
+        minimizar = tk.Button(barra, text="—", command=self._minimizar, cursor="hand2", **botao_base)
         minimizar.configure(font=("Segoe UI", 12, "bold"))
         minimizar.grid(row=0, column=2, sticky="nsew")
         self._adicionar_hover(minimizar, DESTAQUE, DESTAQUE_HOVER)
@@ -215,4 +238,7 @@ class GeradorTTSApp(tk.Tk):
 
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        # Faz a barra de tarefas usar o ícone do app em vez do ícone do Python.
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("GeradorTTS.App")
     GeradorTTSApp().mainloop()
