@@ -1,4 +1,4 @@
-"""Converte texto em áudio WAV usando o Microsoft Edge TTS."""
+"""Converte texto em áudio (WAV, MP3, OGG, FLAC...) usando o Microsoft Edge TTS."""
 
 import argparse
 import asyncio
@@ -11,9 +11,21 @@ from pathlib import Path
 import edge_tts
 
 
+# chave -> (rótulo, extensão, argumentos do FFmpeg para a conversão)
+FORMATOS: dict[str, tuple[str, str, list[str]]] = {
+    "wav-telefonia": ("WAV · telefonia (8 kHz, mono)", ".wav", ["-ac", "1", "-ar", "8000", "-sample_fmt", "s16"]),
+    "wav": ("WAV · alta qualidade (24 kHz, mono)", ".wav", ["-ac", "1", "-ar", "24000", "-sample_fmt", "s16"]),
+    "ulaw": ("WAV · G.711 µ-law (8 kHz)", ".wav", ["-ac", "1", "-ar", "8000", "-c:a", "pcm_mulaw"]),
+    "mp3": ("MP3", ".mp3", ["-c:a", "copy"]),
+    "ogg": ("OGG Vorbis", ".ogg", ["-c:a", "libvorbis", "-q:a", "5"]),
+    "flac": ("FLAC (sem perdas)", ".flac", ["-c:a", "flac"]),
+}
+FORMATO_PADRAO = "wav-telefonia"
+
+
 def criar_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Gera arquivos WAV a partir de texto usando o Edge TTS."
+        description="Gera arquivos de áudio a partir de texto usando o Edge TTS."
     )
     entrada = parser.add_mutually_exclusive_group()
     entrada.add_argument("--texto", help="Texto que será convertido em áudio.")
@@ -26,7 +38,13 @@ def criar_parser() -> argparse.ArgumentParser:
         "--saida",
         type=Path,
         default=Path("audio.wav"),
-        help="Arquivo WAV de saída (padrão: audio.wav).",
+        help="Arquivo de saída; a extensão é ajustada ao formato (padrão: audio.wav).",
+    )
+    parser.add_argument(
+        "--formato",
+        choices=list(FORMATOS),
+        default=FORMATO_PADRAO,
+        help=f"Formato do áudio (padrão: {FORMATO_PADRAO}).",
     )
     parser.add_argument(
         "--voz",
@@ -62,8 +80,8 @@ def obter_texto(args: argparse.Namespace) -> str:
     raise ValueError("Informe --texto, --arquivo ou use --listar-vozes.")
 
 
-async def gerar_audio(texto: str, args: argparse.Namespace) -> None:
-    await gerar_audio_wav(texto, args.saida, args.voz, args.velocidade)
+async def gerar_audio(texto: str, args: argparse.Namespace) -> Path:
+    return await gerar_audio_arquivo(texto, args.saida, args.voz, args.velocidade, args.formato)
 
 
 def localizar_ffmpeg() -> str | None:
@@ -82,6 +100,21 @@ async def gerar_audio_wav(
     velocidade: str = "-5%",
 ) -> Path:
     """Gera um WAV mono, 8 kHz e 16-bit e devolve o caminho criado."""
+    return await gerar_audio_arquivo(texto, saida, voz, velocidade, "wav-telefonia")
+
+
+async def gerar_audio_arquivo(
+    texto: str,
+    saida: Path,
+    voz: str = "pt-BR-FranciscaNeural",
+    velocidade: str = "-5%",
+    formato: str = FORMATO_PADRAO,
+) -> Path:
+    """Gera o áudio no formato escolhido e devolve o caminho criado."""
+    if formato not in FORMATOS:
+        raise ValueError(f"Formato desconhecido: {formato}")
+    _, extensao, argumentos = FORMATOS[formato]
+
     ffmpeg = localizar_ffmpeg()
     if ffmpeg is None:
         raise RuntimeError(
@@ -91,7 +124,7 @@ async def gerar_audio_wav(
     if not texto.strip():
         raise ValueError("O texto informado está vazio.")
 
-    saida = Path(saida).with_suffix(".wav")
+    saida = Path(saida).with_suffix(extensao)
     saida.parent.mkdir(parents=True, exist_ok=True)
 
     comunicacao = edge_tts.Communicate(
@@ -117,12 +150,7 @@ async def gerar_audio_wav(
                 "error",
                 "-i",
                 str(mp3),
-                "-ac",
-                "1",
-                "-ar",
-                "8000",
-                "-sample_fmt",
-                "s16",
+                *argumentos,
                 str(saida),
             ],
             check=True,
@@ -145,8 +173,8 @@ async def main() -> None:
 
     try:
         texto = obter_texto(args)
-        await gerar_audio(texto, args)
-        print(f"Áudio gerado: {args.saida.with_suffix('.wav').resolve()}")
+        destino = await gerar_audio(texto, args)
+        print(f"Áudio gerado: {destino}")
     except (FileNotFoundError, RuntimeError, ValueError) as erro:
         parser.error(str(erro))
 

@@ -1,6 +1,6 @@
 # Gerador de TTS
 
-Ferramenta simples para converter texto em áudio WAV usando as vozes neurais do Microsoft Edge TTS.
+Ferramenta simples para converter texto em áudio (WAV, MP3, OGG ou FLAC) usando as vozes neurais do Microsoft Edge TTS.
 
 ## Instalação no Windows
 
@@ -30,7 +30,18 @@ Também é possível ler o texto de um arquivo UTF-8:
   --saida .\audios\narracao.wav
 ```
 
-O áudio é salvo em WAV mono, 8 kHz, 16-bit, adequado para fluxos de voz que exigem esse formato.
+Por padrão o áudio é salvo em WAV mono, 8 kHz, 16-bit (telefonia). Use `--formato` para escolher outro:
+
+| `--formato` | Saída |
+|---|---|
+| `wav-telefonia` (padrão) | WAV PCM 16-bit, 8 kHz, mono |
+| `wav` | WAV PCM 16-bit, 24 kHz, mono |
+| `ulaw` | WAV G.711 µ-law, 8 kHz, mono |
+| `mp3` | MP3 original do Edge TTS (24 kHz) |
+| `ogg` | OGG Vorbis |
+| `flac` | FLAC sem perdas |
+
+A extensão do arquivo de saída é ajustada automaticamente ao formato.
 
 ## Interface gráfica
 
@@ -40,7 +51,7 @@ Depois da instalação, abra a interface com:
 .\.venv\Scripts\python.exe .\app.py
 ```
 
-Ela permite escrever o texto, escolher uma voz, ajustar a velocidade e definir o arquivo WAV de destino.
+Ela permite escrever o texto, escolher uma voz, ajustar a velocidade, escolher o formato do áudio e definir o arquivo de destino. As cores seguem a paleta do SIPPER.
 
 ## Instalador do Windows
 
