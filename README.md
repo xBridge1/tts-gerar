@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="readmepic.png" alt="TTS - Text to Speech, powered by SIPPER" width="640">
+</p>
+
 # Gerador de TTS
 
 Ferramenta simples para converter texto em áudio (WAV, MP3, OGG ou FLAC) usando as vozes neurais do Microsoft Edge TTS.
@@ -68,7 +72,7 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1 -Versao 1.0.0
 
 O instalador será criado em `dist\GeradorTTS-Setup-1.0.0.exe`. Para gerar apenas um `.exe` portátil, sem instalador, use `.\build.ps1 -Portatil` (resultado em `dist\GeradorTTS.exe`).
 
-O ícone do aplicativo fica em `iconpp.ico`.
+O ícone do aplicativo fica em `icon/app.ico`, gerado a partir de `icon/icon.jpg`.
 
 ## Escolher uma voz
 
